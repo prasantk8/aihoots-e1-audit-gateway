@@ -5,3 +5,4 @@ __pycache__/
 *.jsonl
 .coverage
 sbom.spdx.json
+.DS_Store
