@@ -36,8 +36,13 @@ async def healthz() -> dict:
 
 @app.get("/metrics")
 async def metrics() -> dict:
-    """Minimal metrics surface; the stats module (ADR-003) enriches this."""
-    return {"audit_log": settings.audit_log_path}
+    """Metrics surface enriched by the stats module (ADR-003)."""
+    try:
+        from src.stats.analyzer import load_events, summarize
+        events = load_events(settings.audit_log_path)
+        return summarize(events)
+    except FileNotFoundError:
+        return {"total_events": 0, "note": "no audit log yet"}
 
 
 @app.post("/v1/chat/completions")
