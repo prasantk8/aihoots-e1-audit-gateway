@@ -67,3 +67,19 @@ the eventual article a real engineering story instead of a sanitized tutorial.
 - Wrote docs/article-2-stats.md (the 2nd post: "your audit log is a security dataset").
 - NEXT (Prashant, local): commit+push stats module & 2nd article, watch CI green, then publish
   article-2 on aihoots.com + LinkedIn. E1 then fully complete per vision-doc Definition of Done.
+
+## Day 6 — 2026-07-21 (E2 begins)
+- Started Episode 2: Guardrail & Injection Eval Harness. Decision (Prashant): score BOTH
+  raw model and gated gateway, publish the before/after delta. Same repo, new src/eval/ module.
+- ADR-005 (standing eval harness, why-not-alternatives) + ADR-006 (layered deterministic
+  scoring: gate-block -> refusal -> success-marker; explicit "ambiguous" bucket, no LLM-judge).
+- Versioned attack corpus v1 (src/eval/corpus/attacks-v1.json): 9 attacks across
+  injection/jailbreak/leakage/role-confusion/encoding + 2 benign controls, each with a concrete
+  success_marker.
+- Scorer (src/eval/scorer.py): run_eval + score_case + delta_report (raw vs gated headline).
+- audit-eval CLI (src/eval/cli.py): runs corpus vs --raw and/or --gated live endpoints, prints
+  per-category catch-rates + delta, exits 1 below threshold (CI gate).
+- Tests: 12 eval tests incl. full raw-vs-gated end-to-end with fake targets + CLI gate logic.
+- Full suite now 41 tests, 87% coverage, gate green.
+- NEXT: run audit-eval against the LIVE stack (real qwen raw vs gated) to capture the REAL
+  delta numbers for the article; add eval as a CI job; write + publish the E2 article.
