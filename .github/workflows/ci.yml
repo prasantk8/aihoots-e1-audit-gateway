@@ -1,0 +1,60 @@
+# The pipeline IS part of the content (E1's second storyline): governed AI built
+# with governed engineering. Every README badge is earned by a green stage here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check src tests
+
+      - name: Tests + coverage gate
+        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=80
+
+      - name: SAST (bandit)
+        run: bandit -r src -ll
+
+      - name: Dependency audit (pip-audit)
+        run: pip-audit -r requirements.txt || true   # report; don't hard-fail on advisories in E1
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: quality-and-security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f docker/Dockerfile -t aihoots-gateway:ci .
+      - name: SBOM (syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: aihoots-gateway:ci
+          format: spdx-json
+          output-file: sbom.spdx.json
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json

@@ -1,0 +1,38 @@
+# One command to run the whole governed stack: `docker compose up`.
+# Reproducibility is the point (ADR-002): pinned model + runtime, model reachable
+# ONLY by the gateway on an internal network.
+services:
+  model:
+    # Containerized SLM backend (ADR-002). Ollama serves an OpenAI-compatible API.
+    # Pin the image and pull a small instruct model on first run.
+    image: ollama/ollama:0.5.7
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - internal
+    # Not exposed to the host: the gateway is the sole path to the model.
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      AIHOOTS_UPSTREAM_BASE_URL: "http://model:11434"
+      AIHOOTS_DEFAULT_MODEL: "qwen2.5:3b-instruct"
+      AIHOOTS_AUDIT_LOG_PATH: "/data/audit.jsonl"
+    volumes:
+      - audit:/data
+    ports:
+      - "8000:8000"   # the ONLY exposed surface
+    networks:
+      - internal
+    depends_on:
+      - model
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  ollama:
+  audit:
