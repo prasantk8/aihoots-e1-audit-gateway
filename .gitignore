@@ -1,8 +1,18 @@
+# Python caches and compiled files
 __pycache__/
 *.pyc
+
+# Local configuration and runtime data
 .env
 /data/
 *.jsonl
+
+# Local test, security, and coverage reports
 .coverage
 sbom.spdx.json
+
+# Operating-system metadata
 .DS_Store
+
+# Personal LinkedIn drafts and related files
+linkedin*

@@ -129,7 +129,6 @@ def detect_caller_rate_outlier(events: list[dict]) -> Finding | None:
     if len(counts) < 3:                      # need peers to compare against
         return None
     callers = list(counts)
-    vals = [counts[c] for c in callers]
     worst, worst_z = None, 0.0
     for c in callers:
         # Robust z vs peers: compare each caller against the distribution of the
