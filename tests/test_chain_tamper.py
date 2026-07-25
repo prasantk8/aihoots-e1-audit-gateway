@@ -69,3 +69,27 @@ def test_resume_extends_existing_chain(tmp_path):
     chain2.append(new_event(request_id="req-3", caller="test", model="m",
                             event_type="decision", decision="allow"))
     assert verify(str(log)) == []
+
+
+# --- verifier CLI coverage ---------------------------------------------------
+
+def test_verifier_cli_intact(tmp_path, capsys):
+    from src.verifier.cli import main
+    log = _build_log(tmp_path / "audit.jsonl", n=4)
+    code = main([str(log)])
+    assert code == 0
+    assert "intact" in capsys.readouterr().out
+
+
+def test_verifier_cli_tampered(tmp_path, capsys):
+    import json as _json
+    from src.verifier.cli import main
+    log = _build_log(tmp_path / "audit.jsonl", n=4)
+    lines = log.read_text().splitlines()
+    rec = _json.loads(lines[1])
+    rec["prompt_len"] = 9999
+    lines[1] = _json.dumps(rec, sort_keys=True, separators=(",", ":"))
+    log.write_text("\n".join(lines) + "\n")
+    code = main([str(log)])
+    assert code == 1
+    assert "TAMPERING" in capsys.readouterr().err

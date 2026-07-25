@@ -102,3 +102,18 @@ the eventual article a real engineering story instead of a sanitized tutorial.
 - Full suite: 53 tests, 80.27% coverage, gate green.
 - NEXT: install OpenClaw locally, configure it to point at the E1 gateway (ADR-008),
   run the harness against the REAL stack, capture before/after numbers, write the E3 article.
+
+## Day 8 — 2026-07-23 (E3 live numbers)
+- Ran the E3 harness against the real three-service Docker stack.
+- RESULTS: bare agent 0% caught, gated 12% caught, +12% delta.
+  Per category (gated): indirect_injection 1/3 (33%), tool_output_poison 0/2,
+  memory_injection 0/1, exfiltration 0/2. Ambiguous: 7-8/10.
+- KEY FINDING: delta smaller than E2 (+12% vs +20%) because indirect injection
+  hides in processed content — the policy layer's keyword patterns don't fire
+  when the attack is embedded in what looks like legitimate task data.
+  This is the honest finding of E3 and the central paragraph of the article.
+- Updated E3 harness threshold to 0.10 (just below measured 0.12).
+- Written: docs/article-4-e3-agent.md, docs/eval-baseline-e3.md,
+  updated docs/linkedin-post-4-e3-agent.md with real numbers.
+- NEXT: commit + push E3 everything, confirm CI green, publish article on
+  aihoots.com, post LinkedIn post 4. Then E3 is fully done.

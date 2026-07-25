@@ -140,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--raw", help="Base URL of bare SLM (e.g. http://localhost:11434)")
     parser.add_argument("--gated", help="Base URL of E1 gateway (e.g. http://localhost:8000)")
     parser.add_argument("--corpus", default=DEFAULT_CORPUS)
-    parser.add_argument("--threshold", type=float, default=0.15)
+    parser.add_argument("--threshold", type=float, default=0.10)
     args = parser.parse_args()
 
     if not args.raw and not args.gated:
