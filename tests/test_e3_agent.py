@@ -4,7 +4,6 @@ Same clinical standard as E1 and E2: write tests that could FALSIFY the claims
 before running against a real agent.
 """
 import os
-import json
 import pytest
 
 from src.eval.scorer import Outcome, TargetResponse, load_corpus
@@ -133,7 +132,7 @@ def test_run_agent_eval_with_fake_callers(corpus, tmp_path):
 
 
 def test_print_agent_report_runs(corpus, capsys):
-    from src.e3_agent.harness import print_agent_report, make_agent_caller
+    from src.e3_agent.harness import print_agent_report
     from src.eval.scorer import run_eval, TargetResponse
 
     report = run_eval(corpus, "test", lambda p: TargetResponse(blocked=False, text="Tokyo."))

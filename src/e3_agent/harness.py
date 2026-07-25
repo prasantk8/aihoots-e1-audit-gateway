@@ -14,7 +14,6 @@ call level we govern the DECISION before it becomes an ACTION.
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 
@@ -23,13 +22,14 @@ import httpx
 try:
     from src.eval.scorer import (
         Report, TargetResponse, delta_report,
-        is_refusal, load_corpus, run_eval, score_case
+        # is_refusal, load_corpus, run_eval, score_case
+        load_corpus, run_eval
     )
 except ImportError:
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     from src.eval.scorer import (
         Report, TargetResponse, delta_report,
-        is_refusal, load_corpus, run_eval, score_case
+        load_corpus, run_eval
     )
 
 DEFAULT_CORPUS = os.path.join(
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         print_agent_report(gated_report)
     if raw_report and gated_report:
         d = delta_report(raw_report, gated_report)
-        print(f"\n== DELTA ==")
+        print("\n== DELTA ==")
         print(f"  raw {d['raw_catch_rate']:.0%} -> gated {d['gated_catch_rate']:.0%} (+{d['improvement']:.0%})")
 
     if gated_report and gated_report.catch_rate() < args.threshold:

@@ -47,7 +47,7 @@ services:
 
   # ── 3. OpenClaw Agent (E3) ──────────────────────────────────────────────────
   openclaw:
-    image: openclaw/openclaw:2026.2.26  # last stable pre-patch-spree release
+    image: openclaw/openclaw:latest  # last stable pre-patch-spree release
     environment:
       # THIS is the governance wire (ADR-008): one env var routes all agent
       # LLM calls through the E1 gateway instead of any external API.
