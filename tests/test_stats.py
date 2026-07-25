@@ -9,6 +9,7 @@ The test_report_* test prints an honest confusion summary for the article.
 import random
 
 from src.stats.analyzer import (
+    analyze,
     detect_block_rate_spike,
     detect_caller_rate_outlier,
     detect_latency_bimodality,

@@ -83,3 +83,22 @@ the eventual article a real engineering story instead of a sanitized tutorial.
 - Full suite now 41 tests, 87% coverage, gate green.
 - NEXT: run audit-eval against the LIVE stack (real qwen raw vs gated) to capture the REAL
   delta numbers for the article; add eval as a CI job; write + publish the E2 article.
+
+## Day 7 — 2026-07-22 (E3 begins)
+- Started Episode 3: Governing an autonomous agent (OpenClaw). Clean-provenance rule confirmed
+  in ADR-007: public security literature + fresh home install only.
+- Research: OpenClaw has 470 published security advisories, 200k+ GitHub stars, live CVEs
+  (CVE-2026-24763 command injection, CVE-2026-25253 CSRF→RCE, CVE-2026-26329 path traversal,
+  CVE-2026-30741 prompt-injection→code execution). MITRE ATLAS-documented attack patterns.
+- ADR-007 (E3 scope: why agent governance is different, attack categories, honest limits).
+- ADR-008 (routing OpenClaw calls through E1 gateway via config-only change — zero code mods).
+- E3 agent attack corpus v1 (src/e3_agent/corpus/agent-attacks-v1.json): 8 attacks across
+  indirect_injection, tool_output_poison, memory_injection, exfiltration + 2 controls.
+- Agent harness (src/e3_agent/harness.py): run_agent_eval, make_agent_caller, extended
+  exfil file detection, CLI with --raw/--gated/--threshold.
+- 12 E3 tests including full fake-target end-to-end + exfil file detection.
+- BUG: E3 corpus used "task" key; scorer expected "prompt" -> KeyError. Fixed by
+  renaming corpus key to "prompt" for interface consistency. Worth a sentence in the article.
+- Full suite: 53 tests, 80.27% coverage, gate green.
+- NEXT: install OpenClaw locally, configure it to point at the E1 gateway (ADR-008),
+  run the harness against the REAL stack, capture before/after numbers, write the E3 article.

@@ -1,17 +1,33 @@
-# One command to run the whole governed stack: `docker compose up`.
-# Reproducibility is the point (ADR-002): pinned model + runtime, model reachable
-# ONLY by the gateway on an internal network.
+# AIHOOTS full stack: `docker compose up`
+# Three services, one network, one command.
+#
+# Architecture (E3 adds OpenClaw):
+#
+#   openclaw ──(OpenAI API)──► gateway ──(OpenAI API)──► model
+#   (agent)                    (audit+policy)            (SLM)
+#
+# OpenClaw is configured to talk to the GATEWAY, not the model directly.
+# This means every LLM decision the agent makes is audited and policy-checked
+# before it returns a tool-use instruction. (ADR-008)
+#
+# Network rules:
+#   - model: internal only — never reachable from host or agent directly
+#   - gateway: internal + host:8000 — the only LLM surface
+#   - openclaw: internal + host:18789 (UI) — talks to gateway, not model
+
 services:
+
+  # ── 1. The SLM ──────────────────────────────────────────────────────────────
   model:
-    # Containerized SLM backend (ADR-002). Ollama serves an OpenAI-compatible API.
-    # Pin the image and pull a small instruct model on first run.
-    image: ollama/ollama:0.5.7
+    image: ollama/ollama:0.5.7          # pinned for reproducibility (ADR-002)
     volumes:
       - ollama:/root/.ollama
     networks:
       - internal
-    # Not exposed to the host: the gateway is the sole path to the model.
+    # NOT exposed to host — gateway is the sole path in. Agent cannot reach
+    # the model directly even if misconfigured: network isolation enforces it.
 
+  # ── 2. The E1 Audit Gateway ─────────────────────────────────────────────────
   gateway:
     build:
       context: .
@@ -23,11 +39,38 @@ services:
     volumes:
       - audit:/data
     ports:
-      - "8000:8000"   # the ONLY exposed surface
+      - "8000:8000"           # host access for harness + smoke tests
     networks:
       - internal
     depends_on:
       - model
+
+  # ── 3. OpenClaw Agent (E3) ──────────────────────────────────────────────────
+  openclaw:
+    image: openclaw/openclaw:2026.2.26  # last stable pre-patch-spree release
+    environment:
+      # THIS is the governance wire (ADR-008): one env var routes all agent
+      # LLM calls through the E1 gateway instead of any external API.
+      OPENCLAW_OPENAI_API_BASE: "http://gateway:8000/v1"
+      OPENCLAW_OPENAI_API_KEY: "not-needed"   # gateway doesn't require auth in dev
+      OPENCLAW_OPENAI_MODEL: "qwen2.5:3b-instruct"
+      # Disable all outbound tool capabilities for E3 eval safety:
+      # the agent answers prompts via the LLM only — no real shell/file execution.
+      OPENCLAW_TOOL_SHELL_ENABLED: "false"
+      OPENCLAW_TOOL_FILES_ENABLED: "false"
+      OPENCLAW_TOOL_BROWSER_ENABLED: "false"
+    volumes:
+      - openclaw-data:/root/.openclaw
+    ports:
+      - "18789:18789"         # OpenClaw control UI (optional, for manual inspection)
+    networks:
+      - internal
+    depends_on:
+      - gateway
+    # Why tools disabled? For the E3 eval we're testing whether the GOVERNANCE
+    # LAYER (the LLM call through the gateway) catches injection. Enabling real
+    # tool execution would make the sandbox unsafe for adversarial prompts.
+    # Tools are re-enabled manually for live demos after the eval run.
 
 networks:
   internal:
@@ -36,3 +79,4 @@ networks:
 volumes:
   ollama:
   audit:
+  openclaw-data:
